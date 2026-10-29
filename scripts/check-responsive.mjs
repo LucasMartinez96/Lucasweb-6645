@@ -38,6 +38,14 @@ try{
     page.on('response',res=>{if(res.status()>=400)failures.push('HTTP '+res.status()+': '+res.url())});
     await page.goto(url,{waitUntil:'networkidle',timeout:40000});
     await page.waitForTimeout(300);
+    // Imagens fora da tela ficam intencionalmente sem currentSrc enquanto lazy.
+    // Percorre cada imagem antes de exigir carregamento completo.
+    for (const img of await page.locator('img').all()) {
+      await img.scrollIntoViewIfNeeded({timeout:10000});
+      await img.evaluate(el => { el.loading = 'eager'; });
+      await img.evaluate(el => el.decode().catch(() => {}));
+    }
+    await page.waitForTimeout(220);
     const data=await page.evaluate(()=>({
       width:document.documentElement.clientWidth,
       scroll:document.documentElement.scrollWidth,
