@@ -35,6 +35,19 @@ jobs:
           test -f github-pages/.nojekyll
           test -d github-pages/assets
           ! grep -qi 'runable.js' github-pages/index.html
+      - name: Testar visual mobile e desktop em Chromium
+        run: |
+          mkdir -p /tmp/lucas-pw
+          npm --prefix /tmp/lucas-pw install --no-save --silent playwright-core@1.55.1
+          cp scripts/check-responsive.mjs /tmp/lucas-pw/run.mjs
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || true)" node /tmp/lucas-pw/run.mjs
+      - name: Guardar capturas e relatório de responsividade
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lucasweb-v2-testes-visuais
+          path: preview-tests/
+          retention-days: 14
       - name: Arquivar prévia estática para revisão
         uses: actions/upload-artifact@v4
         with:
